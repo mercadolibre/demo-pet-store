@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Success - Demo Pet Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .payment-status {
+            text-align: center;
+            padding: 50px 20px;
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .success-icon {
+            color: #4CAF50;
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .payment-status h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .payment-status p {
+            margin-bottom: 30px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #45a049;
+        }
+
+        .payment-details {
+            margin-top: 30px;
+            text-align: left;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .payment-details h3 {
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .payment-details p {
+            margin: 8px 0;
+        }
+
+        .payment-details .label {
+            font-weight: bold;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Demo Pet Store</h1>
+        <div class="cart-icon-container">
+            <i class="fas fa-shopping-cart" id="cart-icon"></i>
+            <span id="cart-count">0</span>
+        </div>
+    </header>
+
+    <div class="payment-status">
+        <i class="fas fa-check-circle success-icon"></i>
+        <h2>Payment Successful!</h2>
+        <p>Thank you for your purchase. Your payment has been processed successfully.</p>
+        <div class="payment-details">
+            <h3>Payment Details</h3>
+            <p><span class="label">Order ID:</span> <span id="order-id"></span></p>
+            <p><span class="label">Payment Status:</span> Approved</p>
+            <p><span class="label">Date:</span> <span id="payment-date"></span></p>
+        </div>
+        <a href="/" class="back-btn">Return to Store</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Parse URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentId = urlParams.get('payment_id') || 'N/A';
+            const status = urlParams.get('status') || 'approved';
+            const externalReference = urlParams.get('external_reference') || 'N/A';
+
+            // Update payment details
+            document.getElementById('order-id').textContent = paymentId;
+            document.getElementById('payment-date').textContent = new Date().toLocaleString();
+
+            // Clear cart
+            localStorage.removeItem('petStoreCart');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Failed - Demo Pet Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .payment-status {
+            text-align: center;
+            padding: 50px 20px;
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .failure-icon {
+            color: #f44336;
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .payment-status h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .payment-status p {
+            margin-bottom: 30px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #45a049;
+        }
+
+        .retry-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .retry-btn:hover {
+            background-color: #0b7dda;
+        }
+
+        .button-group {
+            margin-top: 20px;
+        }
+
+        .error-details {
+            margin-top: 30px;
+            text-align: left;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .error-details h3 {
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .error-details p {
+            margin: 8px 0;
+        }
+
+        .error-details .label {
+            font-weight: bold;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Demo Pet Store</h1>
+        <div class="cart-icon-container">
+            <i class="fas fa-shopping-cart" id="cart-icon"></i>
+            <span id="cart-count">0</span>
+        </div>
+    </header>
+
+    <div class="payment-status">
+        <i class="fas fa-times-circle failure-icon"></i>
+        <h2>Payment Failed</h2>
+        <p>We're sorry, but there was an issue processing your payment. Please try again or contact customer support if the problem persists.</p>
+        <div class="error-details">
+            <h3>Error Details</h3>
+            <p><span class="label">Error Code:</span> <span id="error-code"></span></p>
+            <p><span class="label">Error Message:</span> <span id="error-message"></span></p>
+            <p><span class="label">Date:</span> <span id="error-date"></span></p>
+        </div>
+        <div class="button-group">
+            <a href="/" class="retry-btn">Try Again</a>
+            <a href="/" class="back-btn">Return to Store</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Parse URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorCode = urlParams.get('error_code') || 'Unknown';
+            const errorMessage = urlParams.get('error') || 'Payment processing failed';
+
+            // Update error details
+            document.getElementById('error-code').textContent = errorCode;
+            document.getElementById('error-message').textContent = errorMessage;
+            document.getElementById('error-date').textContent = new Date().toLocaleString();
+
+            // Update cart count
+            const cart = JSON.parse(localStorage.getItem('petStoreCart') || '[]');
+            document.getElementById('cart-count').textContent = cart.length;
+        });
+    </script>
+</body>
+</html>
