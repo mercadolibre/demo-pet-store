@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Pending - Pet Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="payment-status pending">
+        <i class="fas fa-clock"></i>
+        <h1>Payment Pending</h1>
+        <p>Your payment is being processed. Please wait for confirmation.</p>
+        <div class="payment-details">
+            <p>Payment ID: <span id="payment-id"></span></p>
+            <p>Status: <span id="payment-status"></span></p>
+            <p>Amount: <span id="payment-amount"></span></p>
+        </div>
+        <p class="note">You will receive an email once the payment is confirmed.</p>
+        <button onclick="returnToStore()" class="btn">Return to Store</button>
+    </div>
+
+    <script>
+        // Extract payment information from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        document.getElementById('payment-id').textContent = urlParams.get('payment_id');
+        document.getElementById('payment-status').textContent = urlParams.get('status');
+        document.getElementById('payment-amount').textContent = `$${urlParams.get('transaction_amount')}`;
+
+        // Clear the cart
+        localStorage.removeItem('petStoreCart');
+
+        // Function to return to store
+        function returnToStore() {
+            window.location.href = window.location.origin;
+        }
+    </script>
+</body>
+</html>

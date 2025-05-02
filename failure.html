@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Failed - Pet Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="payment-status error">
+        <i class="fas fa-times-circle"></i>
+        <h1>Payment Failed</h1>
+        <p>We're sorry, but your payment could not be processed.</p>
+        <div class="payment-details">
+            <p>Error: <span id="error-message"></span></p>
+            <p>Status: <span id="payment-status"></span></p>
+        </div>
+        <button onclick="returnToStore()" class="btn">Try Again</button>
+    </div>
+
+    <script>
+        // Extract error information from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        document.getElementById('error-message').textContent = urlParams.get('error') || 'Payment processing error';
+        document.getElementById('payment-status').textContent = urlParams.get('status') || 'Failed';
+
+        // Function to return to store
+        function returnToStore() {
+            window.location.href = window.location.origin;
+        }
+    </script>
+</body>
+</html>

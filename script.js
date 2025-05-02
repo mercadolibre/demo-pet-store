@@ -1,3 +1,6 @@
+// Constants
+const MP_PUBLIC_KEY = 'APP_USR-41cbbc7c-5e61-484e-babf-d23379638308'; // Replace with your public key
+
 // Shopping cart state
 let cart = [];
 let cartModal = document.getElementById('cart-modal');
@@ -20,7 +23,10 @@ function saveCart() {
 }
 
 // Event listeners
-cartIcon.onclick = () => cartModal.style.display = 'block';
+cartIcon.onclick = () => {
+    cartModal.style.display = 'block';
+    handleCheckout(); // Initialize MercadoPago checkout when cart modal is opened
+};
 closeBtn.onclick = () => cartModal.style.display = 'none';
 emptyCartBtn.onclick = emptyCart;
 
@@ -35,33 +41,33 @@ function initializeProducts() {
     console.log('Initializing products...');
     const container = document.getElementById('products-container');
     const template = document.getElementById('product-template');
-    
+
     console.log('Available products:', products);
     products.forEach(product => {
         const productElement = template.content.cloneNode(true);
-        
+
         // Set product data
         const card = productElement.querySelector('.product-card');
         card.dataset.category = product.category;
-        
+
         const img = productElement.querySelector('.product-image');
         img.src = product.imageUrl;
         img.alt = product.title;
-        
+
         productElement.querySelector('.product-title').textContent = product.title;
         productElement.querySelector('.product-description').textContent = product.description;
         productElement.querySelector('.product-price').textContent = `$${product.price}`;
         productElement.querySelector('.product-stock').textContent = `Stock: ${product.stock} units`;
-        
+
         // Set up quantity controls
         const quantityInput = productElement.querySelector('.quantity-input');
         const minusBtn = productElement.querySelector('.minus');
         const plusBtn = productElement.querySelector('.plus');
-        
+
         minusBtn.onclick = () => updateQuantity(quantityInput, -1, product.stock);
         plusBtn.onclick = () => updateQuantity(quantityInput, 1, product.stock);
         quantityInput.onchange = () => validateQuantity(quantityInput, product.stock);
-        
+
         // Set up add to cart button
         const addToCartBtn = productElement.querySelector('.add-to-cart-btn');
         console.log('Setting up add to cart button for:', product.title);
@@ -69,10 +75,10 @@ function initializeProducts() {
             console.log('Add to cart button clicked for:', product.title);
             addToCart(product, parseInt(quantityInput.value));
         };
-        
+
         container.appendChild(productElement);
     });
-    
+
     // Set up category filters
     setupCategoryFilters();
 }
@@ -98,11 +104,11 @@ function setupCategoryFilters() {
             // Update active button
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
+
             // Filter products
             const category = btn.dataset.category;
             const products = document.querySelectorAll('.product-card');
-            
+
             products.forEach(product => {
                 if (category === 'all' || product.dataset.category === category) {
                     product.style.display = 'block';
@@ -118,7 +124,7 @@ function setupCategoryFilters() {
 function addToCart(product, quantity) {
     console.log('Adding to cart:', product, quantity);
     const existingItem = cart.find(item => item.id === product.id);
-    
+
     if (existingItem) {
         // Update quantity if product already in cart
         const newQuantity = existingItem.quantity + quantity;
@@ -140,7 +146,7 @@ function addToCart(product, quantity) {
         });
         showNotification(`Added ${quantity} ${product.title} to cart`);
     }
-    
+
     updateCartUI();
     saveCart();
 }
@@ -162,19 +168,55 @@ function emptyCart() {
     saveCart();
 }
 
-// Handle checkout
-function handleCheckout() {
+// Handle checkout with MercadoPago
+async function handleCheckout() {
     if (cart.length === 0) {
         showNotification('Your cart is empty', 'error');
         return;
     }
-    
-    const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
-    cart = [];
-    updateCartUI();
-    saveCart();
-    showNotification(`Order placed! Total: $${total}`, 'success');
-    cartModal.style.display = 'none';
+
+    try {
+        // Create payment preference
+        const response = await fetch('/create_preference', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                items: cart.map(item => ({
+                    title: item.title,
+                    unit_price: item.unit_price,
+                    quantity: item.quantity
+                }))
+            })
+        });
+
+        const { id: preferenceId } = await response.json();
+
+        // Clear previous checkout button
+        const checkoutContainer = document.querySelector('.cho-container');
+        checkoutContainer.innerHTML = '';
+
+        // Initialize MercadoPago Checkout
+        const mp = window.mp || new MercadoPago(MP_PUBLIC_KEY, {
+            locale: 'es-AR'
+        });
+
+        // Create checkout button
+        mp.checkout({
+            preference: {
+                id: preferenceId
+            },
+            render: {
+                container: '.cho-container',
+                label: 'Pay with Mercado Pago',
+            }
+        });
+
+    } catch (error) {
+        console.error('Checkout error:', error);
+        showNotification('Error processing checkout', 'error');
+    }
 }
 
 // Update cart UI
@@ -187,7 +229,7 @@ function updateCartUI() {
     // Update cart items
     const cartItems = document.getElementById('cart-items');
     cartItems.innerHTML = '';
-    
+
     cart.forEach((item, index) => {
         const cartItem = document.createElement('div');
         cartItem.className = 'cart-item';
@@ -206,6 +248,12 @@ function updateCartUI() {
     // Update total
     const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
     document.getElementById('cart-total').textContent = `$${total}`;
+
+    // Update checkout button container
+    const checkoutContainer = document.getElementById('checkout-container');
+    checkoutContainer.innerHTML = `
+        <div class="cho-container"></div>
+    `;
 }
 
 // Show notification
@@ -223,14 +271,21 @@ function showNotification(message, type = 'success') {
 
 // Initialize the store
 document.addEventListener('DOMContentLoaded', () => {
+    // Load MercadoPago SDK
+    const script = document.createElement('script');
+    script.src = "https://sdk.mercadopago.com/js/v2";
+    script.type = "text/javascript";
+    document.body.appendChild(script);
+
+    script.onload = () => {
+        // Initialize MercadoPago object
+        window.mp = new MercadoPago(MP_PUBLIC_KEY, {
+            locale: 'es-AR'
+        });
+    };
+
     initializeProducts();
     loadCart();
-    
-    // Add checkout button event listener
-    const checkoutBtn = document.getElementById('checkout-btn');
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', handleCheckout);
-    }
 });
 
 // Add CSS for notifications
