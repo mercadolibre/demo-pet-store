@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Pending - Demo Pet Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .payment-result {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .pending-icon {
+            font-size: 80px;
+            color: #ff9800;
+            margin-bottom: 20px;
+        }
+
+        .payment-details {
+            margin: 30px 0;
+            text-align: left;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .payment-details h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .back-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .back-btn:hover {
+            background-color: #45a049;
+        }
+
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 4px;
+        }
+
+        .payment-instructions {
+            text-align: left;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .payment-instructions h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .payment-instructions ol {
+            margin-left: 20px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Demo Pet Store</h1>
+    </header>
+
+    <div class="payment-result">
+        <i class="fas fa-clock pending-icon"></i>
+        <h2>Payment Pending</h2>
+        <p>Your payment is being processed. We'll notify you once it's complete.</p>
+
+        <div class="info-box">
+            <p><strong>Note:</strong> Depending on your payment method, this process may take a few minutes to a few business days.</p>
+        </div>
+
+        <div class="payment-details">
+            <h3>Payment Details</h3>
+            <div id="payment-info">
+                <!-- Payment details will be inserted here -->
+            </div>
+        </div>
+
+        <div class="payment-instructions" id="payment-instructions">
+            <!-- Payment instructions will be inserted here if applicable -->
+        </div>
+
+        <a href="/" class="back-btn">Return to Store</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get payment details from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentId = urlParams.get('payment_id');
+            const status = urlParams.get('status');
+            const merchantOrderId = urlParams.get('merchant_order_id');
+            const paymentType = urlParams.get('payment_type');
+
+            // Get order details from localStorage
+            const orderItems = JSON.parse(localStorage.getItem('lastOrderItems') || '[]');
+            const orderTotal = localStorage.getItem('lastOrderTotal') || '0';
+
+            // Display payment details
+            const paymentInfo = document.getElementById('payment-info');
+
+            // Add payment ID and status
+            if (paymentId) {
+                const paymentIdRow = document.createElement('div');
+                paymentIdRow.className = 'detail-row';
+                paymentIdRow.innerHTML = `
+                    <span>Payment ID:</span>
+                    <span>${paymentId}</span>
+                `;
+                paymentInfo.appendChild(paymentIdRow);
+            }
+
+            if (status) {
+                const statusRow = document.createElement('div');
+                statusRow.className = 'detail-row';
+                statusRow.innerHTML = `
+                    <span>Status:</span>
+                    <span>${status}</span>
+                `;
+                paymentInfo.appendChild(statusRow);
+            }
+
+            if (paymentType) {
+                const paymentTypeRow = document.createElement('div');
+                paymentTypeRow.className = 'detail-row';
+                paymentTypeRow.innerHTML = `
+                    <span>Payment Method:</span>
+                    <span>${paymentType}</span>
+                `;
+                paymentInfo.appendChild(paymentTypeRow);
+            }
+
+            if (merchantOrderId) {
+                const orderIdRow = document.createElement('div');
+                orderIdRow.className = 'detail-row';
+                orderIdRow.innerHTML = `
+                    <span>Order ID:</span>
+                    <span>${merchantOrderId}</span>
+                `;
+                paymentInfo.appendChild(orderIdRow);
+            }
+
+            // Add order items
+            if (orderItems.length > 0) {
+                const itemsTitle = document.createElement('h3');
+                itemsTitle.textContent = 'Order Items';
+                paymentInfo.appendChild(itemsTitle);
+
+                orderItems.forEach(item => {
+                    const itemRow = document.createElement('div');
+                    itemRow.className = 'detail-row';
+                    itemRow.innerHTML = `
+                        <span>${item.title} x ${item.quantity}</span>
+                        <span>$${item.unit_price * item.quantity}</span>
+                    `;
+                    paymentInfo.appendChild(itemRow);
+                });
+
+                // Add total
+                const totalRow = document.createElement('div');
+                totalRow.className = 'detail-row';
+                totalRow.style.fontWeight = 'bold';
+                totalRow.innerHTML = `
+                    <span>Total:</span>
+                    <span>$${orderTotal}</span>
+                `;
+                paymentInfo.appendChild(totalRow);
+            }
+
+            // Add payment instructions based on payment type
+            const instructionsDiv = document.getElementById('payment-instructions');
+
+            if (paymentType === 'ticket' || paymentType === 'bank_transfer' || paymentType === 'atm') {
+                instructionsDiv.innerHTML = `
+                    <h3>Payment Instructions</h3>
+                    <ol>
+                        <li>Check your email for payment instructions.</li>
+                        <li>Follow the instructions to complete your payment.</li>
+                        <li>Once payment is confirmed, your order will be processed.</li>
+                        <li>This may take 1-2 business days to reflect in our system.</li>
+                    </ol>
+                `;
+            } else {
+                instructionsDiv.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

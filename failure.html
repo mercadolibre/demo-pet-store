@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Failed - Demo Pet Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .payment-result {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .failure-icon {
+            font-size: 80px;
+            color: #f44336;
+            margin-bottom: 20px;
+        }
+
+        .payment-details {
+            margin: 30px 0;
+            text-align: left;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .payment-details h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .back-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .back-btn:hover {
+            background-color: #45a049;
+        }
+
+        .retry-btn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            margin-left: 10px;
+        }
+
+        .retry-btn:hover {
+            background-color: #0b7dda;
+        }
+
+        .error-message {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Demo Pet Store</h1>
+    </header>
+
+    <div class="payment-result">
+        <i class="fas fa-times-circle failure-icon"></i>
+        <h2>Payment Failed</h2>
+        <p>We're sorry, but there was an issue processing your payment.</p>
+
+        <div class="error-message">
+            <p><strong>Error:</strong> <span id="error-detail">The payment could not be processed.</span></p>
+        </div>
+
+        <div class="payment-details">
+            <h3>Payment Details</h3>
+            <div id="payment-info">
+                <!-- Payment details will be inserted here -->
+            </div>
+        </div>
+
+        <div>
+            <a href="/" class="back-btn">Return to Store</a>
+            <button id="retry-payment" class="retry-btn">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get payment details from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentId = urlParams.get('payment_id');
+            const status = urlParams.get('status');
+            const merchantOrderId = urlParams.get('merchant_order_id');
+            const errorCode = urlParams.get('error');
+
+            // Get order details from localStorage
+            const orderItems = JSON.parse(localStorage.getItem('lastOrderItems') || '[]');
+            const orderTotal = localStorage.getItem('lastOrderTotal') || '0';
+
+            // Display error details
+            if (errorCode) {
+                document.getElementById('error-detail').textContent = `Error code: ${errorCode}`;
+            }
+
+            // Display payment details
+            const paymentInfo = document.getElementById('payment-info');
+
+            // Add payment ID and status
+            if (paymentId) {
+                const paymentIdRow = document.createElement('div');
+                paymentIdRow.className = 'detail-row';
+                paymentIdRow.innerHTML = `
+                    <span>Payment ID:</span>
+                    <span>${paymentId}</span>
+                `;
+                paymentInfo.appendChild(paymentIdRow);
+            }
+
+            if (status) {
+                const statusRow = document.createElement('div');
+                statusRow.className = 'detail-row';
+                statusRow.innerHTML = `
+                    <span>Status:</span>
+                    <span>${status}</span>
+                `;
+                paymentInfo.appendChild(statusRow);
+            }
+
+            // Add order items
+            if (orderItems.length > 0) {
+                const itemsTitle = document.createElement('h3');
+                itemsTitle.textContent = 'Order Items';
+                paymentInfo.appendChild(itemsTitle);
+
+                orderItems.forEach(item => {
+                    const itemRow = document.createElement('div');
+                    itemRow.className = 'detail-row';
+                    itemRow.innerHTML = `
+                        <span>${item.title} x ${item.quantity}</span>
+                        <span>$${item.unit_price * item.quantity}</span>
+                    `;
+                    paymentInfo.appendChild(itemRow);
+                });
+
+                // Add total
+                const totalRow = document.createElement('div');
+                totalRow.className = 'detail-row';
+                totalRow.style.fontWeight = 'bold';
+                totalRow.innerHTML = `
+                    <span>Total:</span>
+                    <span>$${orderTotal}</span>
+                `;
+                paymentInfo.appendChild(totalRow);
+            }
+
+            // Set up retry button
+            document.getElementById('retry-payment').addEventListener('click', function() {
+                // Redirect to checkout page
+                window.location.href = '/';
+            });
+        });
+    </script>
+</body>
+</html>

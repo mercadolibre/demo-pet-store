@@ -35,33 +35,33 @@ function initializeProducts() {
     console.log('Initializing products...');
     const container = document.getElementById('products-container');
     const template = document.getElementById('product-template');
-    
+
     console.log('Available products:', products);
     products.forEach(product => {
         const productElement = template.content.cloneNode(true);
-        
+
         // Set product data
         const card = productElement.querySelector('.product-card');
         card.dataset.category = product.category;
-        
+
         const img = productElement.querySelector('.product-image');
         img.src = product.imageUrl;
         img.alt = product.title;
-        
+
         productElement.querySelector('.product-title').textContent = product.title;
         productElement.querySelector('.product-description').textContent = product.description;
         productElement.querySelector('.product-price').textContent = `$${product.price}`;
         productElement.querySelector('.product-stock').textContent = `Stock: ${product.stock} units`;
-        
+
         // Set up quantity controls
         const quantityInput = productElement.querySelector('.quantity-input');
         const minusBtn = productElement.querySelector('.minus');
         const plusBtn = productElement.querySelector('.plus');
-        
+
         minusBtn.onclick = () => updateQuantity(quantityInput, -1, product.stock);
         plusBtn.onclick = () => updateQuantity(quantityInput, 1, product.stock);
         quantityInput.onchange = () => validateQuantity(quantityInput, product.stock);
-        
+
         // Set up add to cart button
         const addToCartBtn = productElement.querySelector('.add-to-cart-btn');
         console.log('Setting up add to cart button for:', product.title);
@@ -69,10 +69,10 @@ function initializeProducts() {
             console.log('Add to cart button clicked for:', product.title);
             addToCart(product, parseInt(quantityInput.value));
         };
-        
+
         container.appendChild(productElement);
     });
-    
+
     // Set up category filters
     setupCategoryFilters();
 }
@@ -98,11 +98,11 @@ function setupCategoryFilters() {
             // Update active button
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
+
             // Filter products
             const category = btn.dataset.category;
             const products = document.querySelectorAll('.product-card');
-            
+
             products.forEach(product => {
                 if (category === 'all' || product.dataset.category === category) {
                     product.style.display = 'block';
@@ -118,7 +118,7 @@ function setupCategoryFilters() {
 function addToCart(product, quantity) {
     console.log('Adding to cart:', product, quantity);
     const existingItem = cart.find(item => item.id === product.id);
-    
+
     if (existingItem) {
         // Update quantity if product already in cart
         const newQuantity = existingItem.quantity + quantity;
@@ -140,7 +140,7 @@ function addToCart(product, quantity) {
         });
         showNotification(`Added ${quantity} ${product.title} to cart`);
     }
-    
+
     updateCartUI();
     saveCart();
 }
@@ -163,18 +163,53 @@ function emptyCart() {
 }
 
 // Handle checkout
-function handleCheckout() {
+async function handleCheckout() {
     if (cart.length === 0) {
         showNotification('Your cart is empty', 'error');
         return;
     }
-    
-    const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
-    cart = [];
-    updateCartUI();
-    saveCart();
-    showNotification(`Order placed! Total: $${total}`, 'success');
-    cartModal.style.display = 'none';
+
+    try {
+        // Format items for MercadoPago
+        const items = cart.map(item => ({
+            id: item.id.toString(),
+            title: item.title,
+            unit_price: item.unit_price,
+            quantity: item.quantity,
+            currency_id: 'ARS' // Using Argentine Peso which is supported by MercadoPago
+        }));
+
+        // Create payment preference
+        const response = await fetch('/create_preference', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                items: items,
+                payer: {
+                    email: 'customer@example.com' // In a real app, you would get this from the user
+                }
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Error creating payment preference');
+        }
+
+        const preference = await response.json();
+
+        // Store cart info in localStorage for reference after payment
+        localStorage.setItem('lastOrderItems', JSON.stringify(cart));
+        localStorage.setItem('lastOrderTotal', cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0));
+
+        // Redirect to MercadoPago Checkout
+        window.location.href = preference.init_point;
+
+    } catch (error) {
+        console.error('Error during checkout:', error);
+        showNotification('Error processing checkout. Please try again.', 'error');
+    }
 }
 
 // Update cart UI
@@ -187,7 +222,7 @@ function updateCartUI() {
     // Update cart items
     const cartItems = document.getElementById('cart-items');
     cartItems.innerHTML = '';
-    
+
     cart.forEach((item, index) => {
         const cartItem = document.createElement('div');
         cartItem.className = 'cart-item';
@@ -225,7 +260,7 @@ function showNotification(message, type = 'success') {
 document.addEventListener('DOMContentLoaded', () => {
     initializeProducts();
     loadCart();
-    
+
     // Add checkout button event listener
     const checkoutBtn = document.getElementById('checkout-btn');
     if (checkoutBtn) {
